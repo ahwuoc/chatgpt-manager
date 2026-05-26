@@ -198,7 +198,7 @@ pub async fn run_approval_flow(
                         };
                         state.card_submit_wait_cycles = 0;
                     } else {
-                        pp.log("⚠️ Chưa submit được form thẻ. Kiểm tra cấu hình phone/SMSBower rồi thử lại sau 30s...");
+                        pp.log("⚠️ Chưa submit được form thẻ. Kiểm tra cấu hình phone rồi thử lại sau 30s...");
                         tokio::time::sleep(Duration::from_secs(30)).await;
                         continue;
                     }
