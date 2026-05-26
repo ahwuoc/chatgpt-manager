@@ -23,16 +23,16 @@ fn ensure_us_phone(raw: &str) -> String {
 }
 
 async fn submit_card_form(pp: &PaypalPage<'_>) -> bool {
+    let selectors = crate::selectors::SelectorConfig::load().paypal;
     let submitted = pp
-        .eval_str(
-            r#"(() => {
-        const btn = document.querySelector('button[data-testid="submit-button"]')
-                 || document.querySelector('button[data-atomic-wait-intent="click_select_create_account_and_continue"]')
+        .eval_str(&format!(
+            r#"(() => {{
+        const btn = document.querySelector('{}')
                  || document.querySelector('button[type="submit"]');
         if (!btn) return 'NOT_FOUND';
         if (btn.disabled) return 'DISABLED';
         btn.click();
-        const isVisible = (el) => {
+        const isVisible = (el) => {{
             if (!el) return false;
             const rect = el.getBoundingClientRect();
             const style = window.getComputedStyle(el);
@@ -40,32 +40,33 @@ async fn submit_card_form(pp: &PaypalPage<'_>) -> bool {
                    rect.height > 0 &&
                    style.display !== 'none' &&
                    style.visibility !== 'hidden';
-        };
-        const findEl = (doc, sel) => {
+        }};
+        const findEl = (doc, sel) => {{
             if (!doc) return null;
             let el = doc.getElementById(sel) || doc.querySelector('[name="' + sel + '"]') || doc.querySelector(sel);
             if (el) return el;
             let frames = doc.querySelectorAll('iframe');
-            for (let i = 0; i < frames.length; i++) {
-                try { el = findEl(frames[i].contentDocument, sel); if (el) return el; } catch(e) {}
-            }
+            for (let i = 0; i < frames.length; i++) {{
+                try {{ el = findEl(frames[i].contentDocument, sel); if (el) return el; }} catch(e) {{}}
+            }}
             return null;
-        };
+        }};
         const criticalIds = [
             "cardNumber", "cardExpiry", "cardCvv",
             "firstName", "lastName", "billingLine1",
             "billingCity", "billingPostalCode", "phone",
             "dateOfBirth", "password", "email", "countryCode_0"
         ];
-        const hasVisibleInvalid = criticalIds.some((id) => {
+        const hasVisibleInvalid = criticalIds.some((id) => {{
             const el = findEl(document, id);
             if (!el || !isVisible(el)) return false;
             return String(el.getAttribute('aria-invalid') || '').toLowerCase() === 'true';
-        });
+        }});
         if (hasVisibleInvalid) return 'CLICKED_WITH_ERRORS';
         return 'CLICKED';
-    })()"#,
-        )
+    }})()"#,
+            selectors.submit_button
+        ))
         .await;
 
     if submitted == "CLICKED_WITH_ERRORS" {
@@ -76,18 +77,17 @@ async fn submit_card_form(pp: &PaypalPage<'_>) -> bool {
 }
 
 async fn ensure_us_country_stable(pp: &PaypalPage<'_>) -> bool {
+    let selectors = crate::selectors::SelectorConfig::load().paypal;
     let mut stable_hits = 0u8;
     for _ in 0..10 {
         let is_us = pp
-            .eval_bool(
-                r#"(() => {
-                const select =
-                    document.querySelector('select[data-testid="countrySelector"]') ||
-                    document.getElementById('country') ||
-                    document.querySelector('select[name="country"]');
+            .eval_bool(&format!(
+                r#"(() => {{
+                const select = document.querySelector('{}');
                 return !!select && String(select.value || '').trim() === 'US';
-            })()"#,
-            )
+            }})()"#,
+                selectors.country_selector
+            ))
             .await;
 
         if is_us {

@@ -10,6 +10,7 @@ mod otp;
 mod paths;
 mod paypal_approve_impl;
 mod plus_scan;
+pub mod selectors;
 pub mod sms_service;
 mod us_browser_proxy;
 pub mod utils;
