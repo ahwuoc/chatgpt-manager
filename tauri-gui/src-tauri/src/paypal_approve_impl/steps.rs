@@ -1,5 +1,6 @@
+use crate::otp::extract_6_digit_otp;
 use crate::paypal_approve_impl::page::PaypalPage;
-use crate::paypal_approve_impl::utils::CHECKOUT_LOG_FILE;
+use crate::paths::CHECKOUT_LOG_FILE;
 use crate::sms_service::SmsService;
 use std::fs;
 use std::io::Write;
@@ -603,20 +604,7 @@ pub enum OtpResult {
     NeedNewNumber,
 }
 
-fn extract_6_digit_otp(text: &str) -> Option<String> {
-    let chars: Vec<char> = text.chars().collect();
-    for i in 0..=chars.len().saturating_sub(6) {
-        if chars[i..i + 6].iter().all(|c| c.is_ascii_digit()) {
-            let not_preceded = i == 0 || !chars[i - 1].is_ascii_digit();
-            let not_followed = i + 6 == chars.len() || !chars[i + 6].is_ascii_digit();
-            if not_preceded && not_followed {
-                let code: String = chars[i..i + 6].iter().collect();
-                return Some(code);
-            }
-        }
-    }
-    None
-}
+
 
 pub async fn step_handle_otp(
     pp: &PaypalPage<'_>,

@@ -11,8 +11,8 @@ use std::fs;
 use std::time::Duration;
 use tauri::Emitter;
 
+use crate::paths::{PAYPAL_LINKS_FILE, SUCCESS_FILE};
 use crate::paypal_approve_impl::flow::run_approval_flow;
-use crate::paypal_approve_impl::utils::{PAYPAL_LINKS_FILE, SUCCESS_FILE};
 
 async fn process_link(
     app: tauri::AppHandle,

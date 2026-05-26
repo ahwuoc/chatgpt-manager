@@ -4,6 +4,7 @@ mod auth;
 mod automation_commands;
 mod confirm_paypal_impl;
 mod file_store;
+pub mod js_helpers;
 mod mail_otp;
 mod make_payment_impl;
 mod otp;

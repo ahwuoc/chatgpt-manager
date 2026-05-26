@@ -251,7 +251,7 @@ fn form_urlencoded(params: &[(&str, &str)]) -> String {
         .join("&")
 }
 
-fn extract_6_digit_otp(text: &str) -> Option<String> {
+pub fn extract_6_digit_otp(text: &str) -> Option<String> {
     let re = regex::Regex::new(r"(?m)(^|[^\d#])(\d{6})([^\d#]|$)").unwrap();
     re.captures(text)
         .and_then(|cap| cap.get(2))

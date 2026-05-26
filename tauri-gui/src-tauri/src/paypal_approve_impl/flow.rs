@@ -2,13 +2,14 @@ use anyhow::{anyhow, Result};
 use chaser_oxide::ChaserPage;
 use std::time::Duration;
 
+use crate::paths::{FLOW_TIMEOUT_SECS, POLL_INTERVAL_SECS};
 use crate::paypal_approve_impl::page::PaypalPage;
 use crate::paypal_approve_impl::steps::{
     refill_phone_and_submit, step_consent, step_create_account, step_fill_card, step_fill_email,
     step_handle_otp, OtpResult,
 };
 use crate::paypal_approve_impl::utils::{
-    mark_trial_plus_fail, mark_trial_plus_success, FLOW_TIMEOUT_SECS, POLL_INTERVAL_SECS,
+    mark_trial_plus_fail, mark_trial_plus_success,
 };
 
 pub struct FlowState {

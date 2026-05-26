@@ -1,11 +1,6 @@
 use std::fs;
 
-pub const PAYPAL_LINKS_FILE: &str = "data/results/02_paypal_approve_links.txt";
-pub const CHECKOUT_LOG_FILE: &str = "data/results/03_paypal_final_checkout_links.txt";
-pub const SUCCESS_FILE: &str = "data/results/04_paypal_success.txt";
-pub const TRIAL_REGISTERED_FILE: &str = "data/trial_registered.json";
-pub const FLOW_TIMEOUT_SECS: u64 = 900;
-pub const POLL_INTERVAL_SECS: u64 = 2;
+use crate::paths::{SUCCESS_FILE, TRIAL_REGISTERED_FILE};
 
 #[derive(Default, serde::Deserialize, serde::Serialize)]
 pub struct TrialRegisteredState {
