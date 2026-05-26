@@ -28,9 +28,7 @@ export function useConsoleState(navItems) {
   const [activeWorkflow] = useState("auth");
   const [runningEmails, setRunningEmails] = useState([]);
   const [isScanningPlusMail, setIsScanningPlusMail] = useState(false);
-  const [isImporting9Router, setIsImporting9Router] = useState(false);
-  const [isExporting9Router, setIsExporting9Router] = useState(false);
-  const [last9RouterExportDir, setLast9RouterExportDir] = useState("");
+
 
   const [activeStatusTab, setActiveStatusTab] = useState("Pending");
   const [subFilter, setSubFilter] = useState("All");
@@ -360,74 +358,7 @@ export function useConsoleState(navItems) {
     }
   };
 
-  const handleImportPlusRealTo9Router = async () => {
-    if (isImporting9Router) return;
 
-    setIsImporting9Router(true);
-    addLog("📤 Đang import toàn bộ acc Plus Trial Thật vào 9Router...");
-    message.loading({ content: "Đang import acc Trial Thật vào 9Router...", key: "import_9router", duration: 0 });
-
-    try {
-      const result = await invoke("import_plus_real_to_9router");
-      const written = result.imported + result.updated;
-      addLog(
-        `✅ Import 9Router xong: thêm mới ${result.imported}, cập nhật ${result.updated}, bỏ qua không token ${result.skippedNoToken}, token lỗi ${result.skippedInvalidToken}.`
-      );
-      message.success({ content: `Đã import/cập nhật ${written} acc Trial Thật vào 9Router!`, key: "import_9router", duration: 4 });
-      addLog(`📍 9Router DB: ${result.dbPath}`);
-    } catch (err) {
-      addLog(`❌ Import 9Router thất bại: ${err}`, "error");
-      message.error({ content: `Import 9Router lỗi: ${err}`, key: "import_9router", duration: 5 });
-    } finally {
-      setIsImporting9Router(false);
-    }
-  };
-
-  const handleOpenFolder = async (folderPath = last9RouterExportDir) => {
-    if (!folderPath) {
-      message.warning("Chưa có thư mục export nào để mở.");
-      return;
-    }
-    try {
-      await invoke("open_folder", { path: folderPath });
-    } catch (err) {
-      message.error(`Không mở được thư mục: ${err}`);
-    }
-  };
-
-  const handleExportSelected9RouterScripts = async () => {
-    if (isExporting9Router) return;
-    if (selectedEmails.length === 0) {
-      message.warning("Tick acc cần export script 9Router trước đã.");
-      return;
-    }
-
-    setIsExporting9Router(true);
-    addLog(`📦 Đang export script import 9Router cho ${selectedEmails.length} acc đã chọn...`);
-    message.loading({ content: "Đang export bộ script 9Router...", key: "export_9router", duration: 0 });
-
-    try {
-      const result = await invoke("export_selected_9router_scripts", { emails: selectedEmails });
-      const exportPath = result.zipPath || result.exportDir;
-      setLast9RouterExportDir(exportPath);
-      try {
-        await navigator.clipboard.writeText(exportPath);
-      } catch (_) {
-        // Clipboard can be blocked by the host OS; the path is still written to logs.
-      }
-
-      addLog(
-        `✅ Export 9Router xong: ${result.exported}/${result.requested} acc. Bỏ qua không token ${result.skippedNoToken}, token lỗi ${result.skippedInvalidToken}.`
-      );
-      addLog(`📦 Export path: ${exportPath}`);
-      message.success({ content: `Export ${result.exported}/${result.requested} acc. Đã copy path.`, key: "export_9router", duration: 4 });
-    } catch (err) {
-      addLog(`❌ Export 9Router thất bại: ${err}`, "error");
-      message.error({ content: `Export 9Router lỗi: ${err}`, key: "export_9router", duration: 5 });
-    } finally {
-      setIsExporting9Router(false);
-    }
-  };
 
   const triggerGetOTP = async (email, password) => {
     if (!password) {
@@ -602,18 +533,12 @@ export function useConsoleState(navItems) {
     getLogColor,
     getNextSmartWorkflow,
     handleCopyToken,
-    handleExportSelected9RouterScripts,
     handleImportBulk,
-    handleImportPlusRealTo9Router,
-    handleOpenFolder,
     handleSaveSettings,
     handleScanPlusMailStatus,
     handleStartAutomation,
     handleStopAutomation,
-    isExporting9Router,
-    isImporting9Router,
     isScanningPlusMail,
-    last9RouterExportDir,
     loadData,
     logs,
     markAccountStatus,

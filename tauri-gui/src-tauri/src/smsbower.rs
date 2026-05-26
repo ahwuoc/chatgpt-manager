@@ -157,7 +157,6 @@ pub async fn query_sms_prices(
         .await
         .map_err(|e| format!("Lỗi đọc phản hồi: {}", e))?;
 
-    // Parse the JSON structure
     let json: serde_json::Value = serde_json::from_str(&resp)
         .map_err(|e| format!("Lỗi parse JSON: {}. Phản hồi: {}", e, resp))?;
 

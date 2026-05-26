@@ -61,7 +61,6 @@ export default function SystemConfigView({
   const [loadingConfig, setLoadingConfig] = useState(false);
   const [cleaningProfiles, setCleaningProfiles] = useState(false);
 
-  // Load Config on mount
   useEffect(() => {
     async function loadConfig() {
       setLoadingConfig(true);
@@ -218,7 +217,7 @@ export default function SystemConfigView({
     <div className="flex h-full flex-col gap-6 p-2 overflow-y-auto">
       <div className="w-full space-y-6">
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
-          
+
           {/* ─── PHẦN 1: CẤU HÌNH SMS & PHONE ─── */}
           <div className="glass rounded-[24px] p-6 border border-white/5 bg-slate-900/40 space-y-6">
             <div className="flex items-center justify-between border-b border-white/5 pb-4">

@@ -33,12 +33,6 @@ export default function AccountsPage({ consoleState }) {
       WORKFLOW_STEPS={consoleState.WORKFLOW_STEPS}
       isScanningPlusMail={consoleState.isScanningPlusMail}
       handleScanPlusMailStatus={consoleState.handleScanPlusMailStatus}
-      isImporting9Router={consoleState.isImporting9Router}
-      handleImportPlusRealTo9Router={consoleState.handleImportPlusRealTo9Router}
-      isExporting9Router={consoleState.isExporting9Router}
-      handleExportSelected9RouterScripts={consoleState.handleExportSelected9RouterScripts}
-      last9RouterExportDir={consoleState.last9RouterExportDir}
-      handleOpenFolder={consoleState.handleOpenFolder}
     />
   );
 }

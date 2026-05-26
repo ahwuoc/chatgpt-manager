@@ -6,7 +6,6 @@ mod confirm_paypal_impl;
 mod file_store;
 mod mail_otp;
 mod make_payment_impl;
-mod ninerouter;
 mod otp;
 mod paths;
 mod paypal_approve_impl;
@@ -38,8 +37,6 @@ pub fn run() {
             automation_commands::stop_automation,
             plus_scan::scan_plus_status,
             plus_scan::scan_plus_mail_status,
-            ninerouter::import_plus_real_to_9router,
-            ninerouter::export_selected_9router_scripts,
             mail_otp::get_otp,
             smsbower::get_sms_config,
             smsbower::save_sms_config,

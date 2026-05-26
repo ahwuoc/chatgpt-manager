@@ -52,12 +52,6 @@ export default function AccountTable({
   WORKFLOW_STEPS,
   isScanningPlusMail,
   handleScanPlusMailStatus,
-  isImporting9Router,
-  handleImportPlusRealTo9Router,
-  isExporting9Router,
-  handleExportSelected9RouterScripts,
-  last9RouterExportDir,
-  handleOpenFolder,
 }) {
   const selectedAccounts = accounts.filter((acc) => selectedEmails.includes(acc.email));
   const [usProxyStatus, setUsProxyStatus] = useState(null);
@@ -699,16 +693,7 @@ export default function AccountTable({
               <Button type="primary" className="rounded-xl bg-amber-500 hover:bg-amber-400 border-none text-slate-950" onClick={() => setShowImportModal(true)} icon={<DownloadOutlined />}>
                 Import Hàng Loạt
               </Button>
-              <Button
-                type="default"
-                className="rounded-xl border-white/10 hover:border-emerald-400 text-slate-200"
-                loading={isImporting9Router}
-                disabled={status === "running"}
-                onClick={handleImportPlusRealTo9Router}
-                icon={<CloudUploadOutlined />}
-              >
-                Import Trial Thật vào 9Router
-              </Button>
+
             </Space>
           </div>
 
@@ -976,25 +961,7 @@ export default function AccountTable({
               >
                 Copy Đầy Đủ
               </Button>
-              <Button
-                type="dashed"
-                className="rounded-xl border-dashed border-emerald-500/30 hover:border-emerald-400 text-emerald-300"
-                loading={isExporting9Router}
-                disabled={status === "running"}
-                icon={<DownloadOutlined />}
-                onClick={handleExportSelected9RouterScripts}
-              >
-                Export 9Router Scripts
-              </Button>
-              {last9RouterExportDir && (
-                <Button
-                  type="default"
-                  className="rounded-xl border-white/10 hover:border-sky-400 text-slate-200"
-                  onClick={() => handleOpenFolder(last9RouterExportDir)}
-                >
-                  Open Folder
-                </Button>
-              )}
+
               <Button
                 type="primary"
                 className="rounded-xl border-none bg-slate-800 hover:bg-slate-700 text-slate-200"
