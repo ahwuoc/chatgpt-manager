@@ -2,19 +2,12 @@ use chaser_oxide::Page;
 use std::time::Duration;
 use tauri::Emitter;
 
+use crate::js_helpers::{JS_FIND_EL, JS_IS_VISIBLE};
+
 pub fn js_fill(selector: &str, val: &str) -> String {
     format!(
         r#"(() => {{
-            let findEl = (doc, sel) => {{
-                if (!doc) return null;
-                let el = doc.getElementById(sel) || doc.querySelector('[name="' + sel + '"]') || doc.querySelector(sel);
-                if (el) return el;
-                let frames = doc.querySelectorAll('iframe');
-                for (let i = 0; i < frames.length; i++) {{
-                    try {{ el = findEl(frames[i].contentDocument, sel); if (el) return el; }} catch(e) {{}}
-                }}
-                return null;
-            }};
+            {JS_FIND_EL}
             let el = findEl(document, {sel:?});
             if (!el) return 'NOT_FOUND:' + {sel:?};
             el.focus();
@@ -54,6 +47,7 @@ pub fn js_fill(selector: &str, val: &str) -> String {
             el.dispatchEvent(new Event('blur', {{ bubbles: true }}));
             return 'OK:' + el.value;
         }})()"#,
+        JS_FIND_EL = JS_FIND_EL,
         sel = selector,
         val = val,
     )
@@ -62,20 +56,12 @@ pub fn js_fill(selector: &str, val: &str) -> String {
 pub fn js_click_btn(selector: &str) -> String {
     format!(
         r#"(() => {{
-            let findEl = (doc, sel) => {{
-                if (!doc) return null;
-                let el = doc.querySelector(sel);
-                if (el) return el;
-                let frames = doc.querySelectorAll('iframe');
-                for (let i = 0; i < frames.length; i++) {{
-                    try {{ el = findEl(frames[i].contentDocument, sel); if (el) return el; }} catch(e) {{}}
-                }}
-                return null;
-            }};
+            {JS_FIND_EL}
             let btn = findEl(document, {sel:?});
             if (btn && !btn.disabled) {{ btn.click(); return 'CLICKED'; }}
             return 'NOT_FOUND';
         }})()"#,
+        JS_FIND_EL = JS_FIND_EL,
         sel = selector,
     )
 }
@@ -140,19 +126,9 @@ impl<'a> PaypalPage<'a> {
 
     pub async fn wait_for_id(&self, id: &str, timeout_secs: u64) -> bool {
         let script = format!(
-            r#"(() => {{
-                let findEl = (doc, sel) => {{
-                    if (!doc) return false;
-                    if (doc.getElementById(sel) || doc.querySelector('[name="' + sel + '"]')) return true;
-                    let frames = doc.querySelectorAll('iframe');
-                    for (let i = 0; i < frames.length; i++) {{
-                        try {{ if (findEl(frames[i].contentDocument, sel)) return true; }} catch(e) {{}}
-                    }}
-                    return false;
-                }};
-                return findEl(document, {id:?});
-            }})()"#,
-            id = id
+            "(() => {{\n{}\nreturn !!findEl(document, {:?});\n}})()",
+            JS_FIND_EL,
+            id
         );
         let ticks = timeout_secs * 2;
         for _ in 0..ticks {
@@ -165,27 +141,25 @@ impl<'a> PaypalPage<'a> {
     }
 
     pub async fn has_email_input(&self) -> bool {
-        self.eval_bool(r#"(() => {
-            const isVisible = (el) => {
-                if (!el) return false;
-                const rect = el.getBoundingClientRect();
-                const style = window.getComputedStyle(el);
-                return rect.width > 0 &&
-                       rect.height > 0 &&
-                       style.display !== 'none' &&
-                       style.visibility !== 'hidden';
-            };
+        let script = format!(
+            "(() => {{\n{}\n{}\n}})()",
+            JS_IS_VISIBLE,
+            r#"
             const el = document.getElementById('login_email') ||
                        document.getElementById('email') ||
                        document.getElementById('onboardingFlowEmail') ||
                        document.querySelector('input[type="email"], input[name="login_email"], input[name="email"]');
             return isVisible(el);
-        })()"#).await
+            "#
+        );
+        self.eval_bool(&script).await
     }
 
     pub async fn is_initial_create_account_prompt(&self) -> bool {
-        self.eval_bool(
-            r#"(() => {
+        let script = format!(
+            "(() => {{\n{}\n{}\n}})()",
+            JS_IS_VISIBLE,
+            r#"
             const submitForm = document.getElementById('publicCredentialSubmitForm');
             const createForm = document.querySelector('form[data-testid="create-account-form"]');
             const createBtn = createForm?.querySelector(
@@ -193,24 +167,15 @@ impl<'a> PaypalPage<'a> {
             );
             const createAccountEmailForm = document.querySelector('form[data-testid="emailForm"]');
             
-            const isVisible = (el) => {
-                if (!el) return false;
-                const rect = el.getBoundingClientRect();
-                const style = window.getComputedStyle(el);
-                return rect.width > 0 &&
-                       rect.height > 0 &&
-                       style.display !== 'none' &&
-                       style.visibility !== 'hidden';
-            };
             const emailEl = document.getElementById('login_email') ||
                             document.getElementById('email') ||
                             document.querySelector('input[type="email"]');
             const hasEmail = isVisible(emailEl);
             
             return !!submitForm && !!createForm && !!createBtn && !createAccountEmailForm && !hasEmail;
-        })()"#,
-        )
-        .await
+            "#
+        );
+        self.eval_bool(&script).await
     }
 
     pub async fn is_create_account_email_form(&self) -> bool {
@@ -227,19 +192,10 @@ impl<'a> PaypalPage<'a> {
     }
 
     pub async fn is_waiting_for_otp_challenge(&self) -> bool {
-        self.eval_bool(
-            r#"(() => {
-            const isVisible = (el) => {
-                if (!el) return false;
-                const rect = el.getBoundingClientRect();
-                const style = window.getComputedStyle(el);
-                return rect.width > 0 &&
-                       rect.height > 0 &&
-                       style.display !== 'none' &&
-                       style.visibility !== 'hidden' &&
-                       style.opacity !== '0';
-            };
-
+        let script = format!(
+            "(() => {{\n{}\n{}\n}})()",
+            JS_IS_VISIBLE,
+            r#"
             const text = (document.body?.innerText || '').toLowerCase();
             const looksLikeCode =
                 text.includes('one-time code') ||
@@ -308,25 +264,16 @@ impl<'a> PaypalPage<'a> {
             }
 
             return looksLikeCode && (canResend || codeInputs.length > 0);
-        })()"#,
-        )
-        .await
+            "#
+        );
+        self.eval_bool(&script).await
     }
 
     pub async fn is_security_challenge_page(&self) -> bool {
-        self.eval_bool(
-            r#"(() => {
-            const isVisible = (el) => {
-                if (!el) return false;
-                const rect = el.getBoundingClientRect();
-                const style = window.getComputedStyle(el);
-                return rect.width > 0 &&
-                       rect.height > 0 &&
-                       style.display !== 'none' &&
-                       style.visibility !== 'hidden' &&
-                       style.opacity !== '0';
-            };
-
+        let script = format!(
+            "(() => {{\n{}\n{}\n}})()",
+            JS_IS_VISIBLE,
+            r#"
             const heading =
                 document.getElementById('policyBasedSecurityHeading') ||
                 document.getElementById('captchaHeading');
@@ -380,9 +327,9 @@ impl<'a> PaypalPage<'a> {
 
             const href = (window.location?.href || '').toLowerCase();
             return href.includes('validatecaptcha') || href.includes('/auth/validatecaptcha');
-        })()"#,
-        )
-        .await
+            "#
+        );
+        self.eval_bool(&script).await
     }
 
     pub async fn select_us_country(&self) -> bool {
@@ -475,200 +422,5 @@ impl<'a> PaypalPage<'a> {
         let log_msg = format!("  → [{}] {}", self.email, msg);
         std::println!("{}", log_msg);
         let _ = self.app.emit("automation-log", log_msg);
-    }
-
-    pub async fn inject_api_sniffer(&self) {
-        let script = r#"(() => {
-            if (window.__api_interceptor_loaded) return 'ALREADY_LOADED';
-            window.__api_interceptor_loaded = true;
-            window.__api_logs = [];
-
-            // Hook Fetch
-            const originalFetch = window.fetch;
-            window.fetch = async function(...args) {
-                const url = args[0];
-                const options = args[1] || {};
-                const method = options.method || 'GET';
-                
-                let reqBody = '';
-                if (options.body) {
-                    try {
-                        if (typeof options.body === 'string') {
-                            reqBody = options.body;
-                        } else if (options.body instanceof Blob) {
-                            reqBody = await options.body.text();
-                        } else if (options.body instanceof URLSearchParams) {
-                            reqBody = options.body.toString();
-                        } else {
-                            reqBody = JSON.stringify(options.body);
-                        }
-                    } catch (e) {}
-                }
-
-                const logEntry = {
-                    type: 'fetch',
-                    timestamp: new Date().toISOString(),
-                    url: typeof url === 'string' ? url : (url.url || ''),
-                    method: method,
-                    request_body: reqBody,
-                    response_status: null,
-                    response_body: ''
-                };
-                window.__api_logs.push(logEntry);
-
-                try {
-                    const response = await originalFetch(...args);
-                    const clone = response.clone();
-                    logEntry.response_status = response.status;
-                    
-                    try {
-                        const text = await clone.text();
-                        logEntry.response_body = text.substring(0, 10000);
-                    } catch (e) {}
-                    
-                    return response;
-                } catch (err) {
-                    logEntry.response_body = 'ERROR: ' + err.message;
-                    throw err;
-                }
-            };
-
-            // Hook XMLHttpRequest
-            const originalOpen = XMLHttpRequest.prototype.open;
-            const originalSend = XMLHttpRequest.prototype.send;
-
-            XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-                this.__logEntry = {
-                    type: 'xhr',
-                    timestamp: new Date().toISOString(),
-                    url: url,
-                    method: method,
-                    request_body: '',
-                    response_status: null,
-                    response_body: ''
-                };
-                return originalOpen.call(this, method, url, ...rest);
-            };
-
-            XMLHttpRequest.prototype.send = function(body) {
-                if (this.__logEntry) {
-                    if (body) {
-                        try {
-                            if (typeof body === 'string') {
-                                this.__logEntry.request_body = body;
-                            } else if (body instanceof Blob) {
-                                body.text().then(t => { this.__logEntry.request_body = t; });
-                            } else {
-                                this.__logEntry.request_body = JSON.stringify(body);
-                            }
-                        } catch(e) {}
-                    }
-                    window.__api_logs.push(this.__logEntry);
-
-                    this.addEventListener('load', () => {
-                        this.__logEntry.response_status = this.status;
-                        try {
-                            this.__logEntry.response_body = this.responseText.substring(0, 10000);
-                        } catch(e) {}
-                    });
-                }
-                return originalSend.call(this, body);
-            };
-
-            return 'LOADED';
-        })()"#;
-        let _ = self.page.evaluate(script).await;
-    }
-
-    pub async fn extract_and_save_api_logs(&self) {
-        let script = r#"(() => {
-            if (!window.__api_logs || window.__api_logs.length === 0) return '';
-            const logs = JSON.stringify(window.__api_logs);
-            window.__api_logs = []; // Drain logs
-            return logs;
-        })()"#;
-
-        use std::collections::HashSet;
-        use std::sync::Mutex;
-        static SEEN_SIGNATURES: Mutex<Option<HashSet<String>>> = Mutex::new(None);
-
-        if let Ok(js_val) = self.page.evaluate(script).await {
-            if let Ok(logs_str) = js_val.into_value::<String>() {
-                if !logs_str.is_empty() {
-                    if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&logs_str) {
-                        if let Some(arr) = parsed.as_array() {
-                            if !arr.is_empty() {
-                                let folder = format!("data/api_logs/{}", self.email);
-                                let _ = std::fs::create_dir_all(&folder);
-
-                                {
-                                    let mut lock = SEEN_SIGNATURES.lock().unwrap();
-                                    if lock.is_none() {
-                                        *lock = Some(HashSet::new());
-                                    }
-                                }
-
-                                for entry in arr {
-                                    let url = entry["url"].as_str().unwrap_or("");
-                                    let method = entry["method"].as_str().unwrap_or("GET");
-                                    let req_body = entry["request_body"].as_str().unwrap_or("");
-
-                                    // 1. Whitelist Check (Only capture ChatGPT, Stripe, and PayPal APIs)
-                                    let is_important = url.contains("chatgpt.com/api/")
-                                        || url.contains("api.stripe.com")
-                                        || url.contains("paypal.com");
-                                    if !is_important {
-                                        continue;
-                                    }
-
-                                    // 2. Blacklist / Junk Filters
-                                    let url_lower = url.to_lowercase();
-                                    let is_junk = url_lower.contains(".js")
-                                        || url_lower.contains(".css")
-                                        || url_lower.contains(".png")
-                                        || url_lower.contains(".jpg")
-                                        || url_lower.contains(".woff")
-                                        || url_lower.contains(".svg")
-                                        || url_lower.contains(".ico")
-                                        || url_lower.contains("statsig")
-                                        || url_lower.contains("sentry")
-                                        || url_lower.contains("amplitude")
-                                        || url_lower.contains("telemetry")
-                                        || url_lower.contains("analytics")
-                                        || url_lower.contains("/logger")
-                                        || url_lower.contains("/ts?")
-                                        || url_lower.contains("/metrics")
-                                        || url_lower.contains("/track");
-                                    if is_junk {
-                                        continue;
-                                    }
-
-                                    // 3. Deduplication Check (seen signatures)
-                                    let signature = format!("{}|{}|{}", method, url, req_body);
-                                    {
-                                        let mut lock = SEEN_SIGNATURES.lock().unwrap();
-                                        if let Some(ref mut set) = *lock {
-                                            if set.contains(&signature) {
-                                                continue; // Skip duplicates
-                                            }
-                                            set.insert(signature);
-                                        }
-                                    }
-
-                                    let timestamp =
-                                        entry["timestamp"].as_str().unwrap_or("unknown");
-                                    let clean_time = timestamp.replace(":", "-").replace(".", "_");
-                                    let filename =
-                                        format!("{}/{}_{}.json", folder, clean_time, method);
-                                    if let Ok(content) = serde_json::to_string_pretty(entry) {
-                                        let _ = std::fs::write(&filename, content);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 }

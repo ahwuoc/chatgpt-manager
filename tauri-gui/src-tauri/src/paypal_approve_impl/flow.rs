@@ -57,8 +57,6 @@ pub async fn run_approval_flow(
                 }
             };
             pp.inject_debug_overlay().await;
-            pp.inject_api_sniffer().await;
-            pp.extract_and_save_api_logs().await;
 
             if url != last_logged_url {
                 pp.log(&format!("Chuyển URL: {}…", &url[..url.len().min(80)]));
