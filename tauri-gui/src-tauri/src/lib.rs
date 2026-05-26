@@ -11,7 +11,6 @@ mod paths;
 mod paypal_approve_impl;
 mod plus_scan;
 pub mod sms_service;
-mod smsbower;
 mod us_browser_proxy;
 pub mod utils;
 
@@ -38,11 +37,8 @@ pub fn run() {
             plus_scan::scan_plus_status,
             plus_scan::scan_plus_mail_status,
             mail_otp::get_otp,
-            smsbower::get_sms_config,
-            smsbower::save_sms_config,
-            smsbower::query_sms_prices,
-            smsbower::query_sms_provider_prices,
-            smsbower::query_sms_services,
+            sms_service::get_sms_config,
+            sms_service::save_sms_config,
             us_browser_proxy::get_us_browser_proxy_config,
             us_browser_proxy::save_us_browser_proxy_config,
             us_browser_proxy::get_us_browser_proxy_status,

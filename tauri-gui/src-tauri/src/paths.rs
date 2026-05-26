@@ -8,4 +8,4 @@ pub const TRIAL_REGISTERED_FILE: &str = "data/trial_registered.json";
 pub const PLUS_VERIFIED_REAL_FILE: &str = "data/results/05_plus_verified_real.txt";
 pub const CHROME_PROFILES_DIR: &str = "data/chrome_profiles";
 pub const PROFILE_RUN_IPS_FILE: &str = "data/profile_run_ips.json";
-pub const SMSBOWER_API_BASE: &str = "https://smsbower.page/stubs/handler_api.php";
+

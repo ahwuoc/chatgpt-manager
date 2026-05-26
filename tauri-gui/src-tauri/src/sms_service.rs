@@ -53,3 +53,13 @@ impl SmsService {
         fs::write(path, json).map_err(|e| e.to_string())
     }
 }
+
+#[tauri::command]
+pub fn get_sms_config() -> Result<SmsConfig, String> {
+    Ok(SmsService::load_config())
+}
+
+#[tauri::command]
+pub fn save_sms_config(config: SmsConfig) -> Result<(), String> {
+    SmsService::save_config(&config)
+}
