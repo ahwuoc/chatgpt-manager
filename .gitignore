@@ -1,0 +1,10 @@
+/target/
+/tauri-gui/node_modules/
+/tauri-gui/dist/
+/tauri-gui/src-tauri/target/
+/tauri-gui/src-tauri/data/
+/tauri-gui/src-tauri/gen/
+.vscode/
+.idea/
+*.log
+.DS_Store

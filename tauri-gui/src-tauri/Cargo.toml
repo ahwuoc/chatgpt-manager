@@ -1,0 +1,34 @@
+[package]
+name = "tauri-gui"
+version = "0.1.0"
+description = "A Tauri App"
+authors = ["you"]
+edition = "2021"
+
+[lib]
+name = "tauri_gui_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["full"] }
+wreq = { version = "6.0.0-rc.28", features = ["json", "cookies"] }
+chrono = { version = "0.4", features = ["serde"] }
+regex = "1"
+rusqlite = { version = "0.32", features = ["bundled"] }
+headless_chrome = "1.0"
+chaser-oxide = "0.2.4"
+futures = "0.3"
+anyhow = "1.0"
+fake = { version = "5.1.0", features = ["chrono"] }
+wreq-util = "3.0.0-rc"
+urlencoding = "2.1.3"
+rand = "0.10.1"
+base64 = "0.22.1"
+zip = { version = "2", default-features = false, features = ["deflate"] }
